@@ -1,0 +1,182 @@
+[
+  {
+    "id": "INC-001",
+    "text": "PostgreSQL connection pool exhausted on billing-service. Active connections: 200/200. Symptoms: p99 latency > 4200ms, DB connection timeout failures.",
+    "type": "database",
+    "subtype": "connection_pool",
+    "severity": "critical",
+    "root_cause": "Unreleased database connection leak inside billing-service checkout transaction routine.",
+    "resolution": "Increased max_connections to 300 and applied garbage collection patch to close unreleased transaction connection blocks."
+  },
+  {
+    "id": "INC-002",
+    "text": "Memory exhaustion (OOM) on user-service. Container killed at 4096MB limit. RSS growing exponentially at 120MB/min.",
+    "type": "memory",
+    "subtype": "oom",
+    "severity": "critical",
+    "root_cause": "Buffer overflow and memory leak during batch serialization of user profile avatars.",
+    "resolution": "Scaled container replicas and adjusted node heap parameters to enforce image compression before memory heap allocation."
+  },
+  {
+    "id": "INC-003",
+    "text": "Redis cache cluster memory reached 98% threshold on cache-router. Eviction policy failing and keys evicted: 4500/sec. Eviction storm occurring.",
+    "type": "memory",
+    "subtype": "cache_eviction",
+    "severity": "high",
+    "root_cause": "Eviction policy set to volatile-lru with no TTL set on transient session keys.",
+    "resolution": "Changed eviction policy to allkeys-lru and configured dynamic TTL expiry on auth tokens."
+  },
+  {
+    "id": "INC-004",
+    "text": "P99 latency spike to 6200ms on Nginx API gateway route /api/v2/checkout. Gateway threshold exceeded: 500ms.",
+    "type": "latency",
+    "subtype": "api_timeout",
+    "severity": "critical",
+    "root_cause": "TCP connection saturation on outbound credit card payment service gate.",
+    "resolution": "Implemented circuit breaker pattern and routed failed checkout requests to secondary fallback gateway."
+  },
+  {
+    "id": "INC-005",
+    "text": "Root disk partition full (99% capacity) on server prod-db-01. Only 45MB free space left on volume /var/log/syslog.",
+    "type": "disk",
+    "subtype": "full",
+    "severity": "critical",
+    "root_cause": "Stuck debug log rotation daemon generating multi-gigabyte verbose stdout log dumps.",
+    "resolution": "Executed safe log truncation script, restarted logrotate service, and updated system alert thresholds to warning at 80%."
+  },
+  {
+    "id": "INC-006",
+    "text": "Container CPU throttled at 85% on order-processor daemon. Container throttle limit hit: 1000m. Response latency degrading.",
+    "type": "cpu",
+    "subtype": "throttling",
+    "severity": "high",
+    "root_cause": "Thread starvation in node event loop during high throughput webhook processing.",
+    "resolution": "Adjusted Kubernetes cgroups resource limits to 2000m CPU limits and scaled worker replicas."
+  },
+  {
+    "id": "INC-007",
+    "text": "SSL/TLS certificate for production portal api.payment.internal expires in 48 hours. Renewal sequence failing with DNS verification errors.",
+    "type": "security",
+    "subtype": "certificate",
+    "severity": "critical",
+    "root_cause": "Let's Encrypt renewal failed due to misconfigured DNS CAA records blocking automation validation.",
+    "resolution": "Manually patched CAA record, re-triggered Certbot automated validation daemon, and verified renewal success."
+  },
+  {
+    "id": "INC-008",
+    "text": "Kubernetes Pod CrashLoopBackOff: order-service-worker restarted 14 times in 5 minutes. Container exit code: 137 (OOMKilled).",
+    "type": "crash",
+    "subtype": "crashloop",
+    "severity": "critical",
+    "root_cause": "JVM heap size misconfigured, exceeding the Docker container RAM cgroup limit.",
+    "resolution": "Adjusted JVM parameters to use -XX:+UseContainerSupport and configured max heap limit dynamically."
+  },
+  {
+    "id": "INC-009",
+    "text": "Database replication lag spiked to 480 seconds on read-replica-02. Primary database server: db-primary-01.",
+    "type": "database",
+    "subtype": "replication_lag",
+    "severity": "high",
+    "root_cause": "Replica IO threads blocked during heavy database migration and unindexed bulk write queries.",
+    "resolution": "Configured replica concurrency options and optimized bulk indexing routines to prevent IO thread contention."
+  },
+  {
+    "id": "INC-010",
+    "text": "Elasticsearch IOPS exhaustion on search-cluster-01. Average IOPS limit hit at 3000/3000. Write queue depth spiked to 120.",
+    "type": "disk",
+    "subtype": "iops",
+    "severity": "high",
+    "root_cause": "Heavy write logs and unindexed documents clogging ES segments flushing routines.",
+    "resolution": "Scaled index shard replicas, cleared bulk segment indexes, and increased EBS IOPS volume parameters."
+  },
+  {
+    "id": "INC-011",
+    "text": "Network partition detected between us-east-1a and us-east-1b. Internal CoreDNS query resolution failure rate spiked to 75%.",
+    "type": "network",
+    "subtype": "partition",
+    "severity": "critical",
+    "root_cause": "AWS transit gateway route table corruption leading to network packet blackholing across subnets.",
+    "resolution": "Re-routed traffic flow through healthy redundant subnets in us-east-1c and flushed local DNS resolver cache."
+  },
+  {
+    "id": "INC-012",
+    "text": "Unusual authentication spike: 450 failed SSH login attempts from IP 203.0.113.42 on bastion host prod-ssh-01.",
+    "type": "security",
+    "subtype": "auth_spike",
+    "severity": "high",
+    "root_cause": "Automated brute-force botnet target scanning public port 22 access.",
+    "resolution": "Blocked malicious IP source block in VPC security group rules and enforced SSH public-key only credentials."
+  },
+  {
+    "id": "INC-013",
+    "text": "Load balancer target group api-gateway-targets reports 4/6 backend instances in UNHEALTHY state. HTTP 502 Bad Gateway spiked.",
+    "type": "network",
+    "subtype": "lb_unhealthy",
+    "severity": "critical",
+    "root_cause": "Deadlock in target group application health check controller responding with timeout.",
+    "resolution": "Optimized health check ping endpoints, decoupled database checks, and restarted target instances."
+  },
+  {
+    "id": "INC-014",
+    "text": "Cassandra DB write timeout anomalies on keyspace sessions. Timeout rate spiked to 45% on node ring node-04.",
+    "type": "database",
+    "subtype": "deadlock",
+    "severity": "high",
+    "root_cause": "Hotspotting on a single partition key due to poorly distributed user UUID range.",
+    "resolution": "Enforced composite primary keys distribution index and cleared cache memory limits on the affected Cassandra nodes."
+  },
+  {
+    "id": "INC-015",
+    "text": "RabbitMQ memory alarm triggered on broker-02. All producers blocked. Queue depth spiked to 85,000 unacknowledged messages.",
+    "type": "memory",
+    "subtype": "cache_eviction",
+    "severity": "high",
+    "root_cause": "Consumer thread starvation on order processing worker service crashing during processing.",
+    "resolution": "Restarted order worker services, added consumer threads, and increased RabbitMQ memory watermark limit."
+  },
+  {
+    "id": "INC-016",
+    "text": "Nginx worker connections exhausted warning on gateway-01. Current active connections: 10240/10240.",
+    "type": "network",
+    "subtype": "lb_unhealthy",
+    "severity": "high",
+    "root_cause": "Slow HTTP client brute-force connections leaking file descriptors.",
+    "resolution": "Increased worker_connections limit to 20480 in nginx.conf and configured request limit rate guidelines."
+  },
+  {
+    "id": "INC-017",
+    "text": "AWS EBS root volume read/write latency spiked to 240ms on db-primary-01. Average disk queue length > 15.",
+    "type": "disk",
+    "subtype": "iops",
+    "severity": "high",
+    "root_cause": "EBS burst balance credits fully depleted during large analytical table sweep.",
+    "resolution": "Upgraded EBS volume type from gp2 to gp3 and provisioned persistent 4000 IOPS baseline capacity."
+  },
+  {
+    "id": "INC-018",
+    "text": "Kafka consumer group offset lag spiked to 125,000 on topic payments-event-stream. Consumer group payment-processor-service.",
+    "type": "latency",
+    "subtype": "network",
+    "severity": "high",
+    "root_cause": "Consumer instance failure leading to partition rebalancing storm.",
+    "resolution": "Enforced partition rebalance timeouts, scaled consumer replicas, and optimized consumer commit routines."
+  },
+  {
+    "id": "INC-019",
+    "text": "Google Cloud Load Balancer reports backend service auth-backend returning HTTP 504 Gateway Timeout to 85% of traffic.",
+    "type": "latency",
+    "subtype": "api_timeout",
+    "severity": "critical",
+    "root_cause": "Third-party LDAP active directory sync service outage blocking authentication calls.",
+    "resolution": "Switched LDAP server endpoints to hot-standby cloud replication instances and updated sync configs."
+  },
+  {
+    "id": "INC-020",
+    "text": "Critical memory fragmentation detected in Redis cluster master-01. Memory fragmentation ratio spiked to 3.8.",
+    "type": "memory",
+    "subtype": "cache_eviction",
+    "severity": "high",
+    "root_cause": "Memory allocations and frequent deallocations causing physical RAM pages segmentation.",
+    "resolution": "Triggered Redis active defragmentation script config and restarted container replica."
+  }
+]

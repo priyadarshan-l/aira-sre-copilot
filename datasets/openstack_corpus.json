@@ -1,0 +1,112 @@
+[
+  {
+    "id": "OPENSTACK-INC-001",
+    "title": "Nova VM Spawn Instance Disk Failure (Event 12)",
+    "text": "Instance failed to spawn on compute-node-04: libvirtError: Cannot access storage file '/var/lib/nova/instances/image-uuid': No such file or directory.",
+    "type": "openstack",
+    "subtype": "instance_spawn_failure",
+    "severity": "critical",
+    "root_cause": "Glance image synchronization delay or missing local cached disk image on the target hypervisor node.",
+    "resolution": "Force Nova to re-download the target image from the Glance registry and verify disk allocation volumes on the compute node.",
+    "logs": "2026-06-25 12:10:04 INFO nova.compute.manager [req-1a2b] Creating image disk and starting instance vm-098\n2026-06-25 12:10:06 ERROR nova.virt.libvirt.driver [req-1a2b] Connection to libvirt lost or storage device failed\n2026-06-25 12:10:07 ERROR nova.compute.manager [req-1a2b] Instance failed to spawn: Cannot access storage file '/var/lib/nova/instances/image-uuid'"
+  },
+  {
+    "id": "OPENSTACK-INC-002",
+    "title": "Keystone Authentication Token Validation Flood (Event 15)",
+    "text": "Authorization failed: Token validation request timeout. Keystone database CPU utilization at 100%. Token table locks saturated.",
+    "type": "openstack",
+    "subtype": "auth_timeout",
+    "severity": "critical",
+    "root_cause": "Orphaned client applications generating massive token request volume without local caching / token reuse.",
+    "resolution": "Enable Keystone token pruning job, clear expired token records from database, and enforce PKI token validation caching on Nova/Glance services.",
+    "logs": "2026-06-25 12:12:30 INFO keystone.common.wsgi [req-3c4d] Validation request for token uuid-xxxx-yyyy\n2026-06-25 12:12:35 WARNING keystone.common.wsgi [req-3c4d] Slow query validation took 4800ms. Token validation timeout.\n2026-06-25 12:12:36 ERROR keystone.common.wsgi [req-3c4d] Authorization failed: Keystone backend database connection timeout."
+  },
+  {
+    "id": "OPENSTACK-INC-003",
+    "title": "Neutron Virtual Tap Bridge Interface Failure (Event 22)",
+    "text": "Failed to bind port tap-f83d9210-44: Device or resource busy. VM spawned without virtual NIC connectivity.",
+    "type": "openstack",
+    "subtype": "network_binding_failure",
+    "severity": "high",
+    "root_cause": "Open vSwitch (OVS) agent network bridge state desynchronization or conflicting port namespace.",
+    "resolution": "Restart neutron-openvswitch-agent, delete the stale port entry using ovs-vsctl, and force Neutron to re-bind port connectivity.",
+    "logs": "2026-06-25 12:15:40 INFO neutron.agent.linux.interface [req-5e6f] Creating bridge interface tap-f83d9210-44\n2026-06-25 12:15:42 ERROR neutron.agent.linux.interface [req-5e6f] Failed to create bridge interface: Device or resource busy\n2026-06-25 12:15:44 WARN neutron.plugins.ml2.drivers.agent [req-5e6f] Port tap-f83d9210-44 failed to transition to active state."
+  },
+  {
+    "id": "OPENSTACK-INC-004",
+    "title": "Glance Image Store Backend Exhaustion (Event 28)",
+    "text": "Image upload failed: Storage write error on volume /var/lib/glance/images. Disk space completely full (100% capacity).",
+    "type": "openstack",
+    "subtype": "image_upload_failure",
+    "severity": "high",
+    "root_cause": "Unchecked accumulation of old, unregistered image snapshots in raw storage directories.",
+    "resolution": "Clean up unreferenced files using glance-cache-manage, delete orphaned images, and adjust default glance storage limits.",
+    "logs": "2026-06-25 12:18:15 INFO glance.api.v1.images [req-7g8h] Uploading raw image snapshot-2026\n2026-06-25 12:18:18 ERROR glance.store.filesystem [req-7g8h] Write failed: No space left on device\n2026-06-25 12:18:20 ERROR glance.api.v1.images [req-7g8h] Image upload failed: Storage backend write failure."
+  },
+  {
+    "id": "OPENSTACK-INC-005",
+    "title": "Nova CPU Overcommit Scheduler Rejection",
+    "text": "Nova Scheduler failed to place instance: No valid host found. CPU overcommit ratio (16:1) exceeded on all available compute hosts.",
+    "type": "openstack",
+    "subtype": "placement_failure",
+    "severity": "high",
+    "root_cause": "Improper sizing rules or node grouping configurations in nova.conf on scheduler master.",
+    "resolution": "Adjust cpu_allocation_ratio configuration or migrate idle virtual machine workloads to secondary underutilized hypervisors.",
+    "logs": "2026-06-25 12:21:00 INFO nova.scheduler.filter_scheduler [req-9i0j] Filtering 12 compute hosts for VM flavor m1.xlarge\n2026-06-25 12:21:02 WARN nova.scheduler.filter_scheduler [req-9i0j] Host compute-01 filtered: CPU limit exceeded\n2026-06-25 12:21:04 ERROR nova.conductor.manager [req-9i0j] No valid host was found for group placement."
+  },
+  {
+    "id": "OPENSTACK-INC-006",
+    "title": "Cinder Volume Attachment Timeout (ISCSI Target)",
+    "text": "Failed to attach volume vol-184920: Device attachment timed out after 120 seconds. iSCSI portal connection rejected.",
+    "type": "openstack",
+    "subtype": "volume_attachment_failure",
+    "severity": "high",
+    "root_cause": "iSCSI daemon (iscsid) freeze or network path breakdown between hypervisor host and storage target array.",
+    "resolution": "Restart iscsid service on hypervisor node, ping target SAN portals, and execute SCSI bus rescan command.",
+    "logs": "2026-06-25 12:23:10 INFO cinder.volume.manager [req-1k2l] Attaching volume vol-184920 to VM instance-829\n2026-06-25 12:23:45 WARN nova.virt.libvirt.volume [req-1k2l] Slow connection to iSCSI target portal 10.100.20.5:3260\n2026-06-25 12:25:10 ERROR nova.compute.manager [req-1k2l] Attachment timed out: libvirt failed to bind block device."
+  },
+  {
+    "id": "OPENSTACK-INC-007",
+    "title": "Neutron Security Group Rules Apply Fail",
+    "text": "Failed to apply iptables security group rules for instance-092. Security policy rules configuration sync loop aborted.",
+    "type": "openstack",
+    "subtype": "firewall_sync_failure",
+    "severity": "high",
+    "root_cause": "Lock saturation or deadlock in local iptables table modification scripts on hypervisor.",
+    "resolution": "Clear system iptables lock file, execute reload commands on network agent, and verify rules syntax.",
+    "logs": "2026-06-25 12:28:05 INFO neutron.agent.linux.iptables_manager [req-3m4n] Applying security group rules for device tap-xxxx\n2026-06-25 12:28:08 ERROR neutron.agent.linux.iptables_manager [req-3m4n] Lock acquisition timeout: Failed to update security chains\n2026-06-25 12:28:10 WARN neutron.agent.securitygroups_rpc [req-3m4n] Security rules out of sync on target compute node."
+  },
+  {
+    "id": "OPENSTACK-INC-008",
+    "title": "RabbitMQ Message Queue Connection Dropout",
+    "text": "AMQP server connection lost on compute-node-12. Failed to publish cast message: Connection reset by peer.",
+    "type": "openstack",
+    "subtype": "queue_disconnection",
+    "severity": "critical",
+    "root_cause": "RabbitMQ broker cluster partition event or broker memory alarm trigger causing connections to drop.",
+    "resolution": "Check RabbitMQ cluster sync state, clear memory alarms by scaling memory threshold, and force compute agents to reconnect.",
+    "logs": "2026-06-25 12:31:02 INFO oslo.messaging._drivers.impl_rabbit [req-5o6p] Connecting to AMQP broker on rabbitmq-01:5672\n2026-06-25 12:31:08 ERROR oslo.messaging._drivers.impl_rabbit [req-5o6p] AMQP connection closed by broker: Socket error\n2026-06-25 12:31:10 WARN oslo.messaging.rpc.client [req-5o6p] Re-enqueueing RPC cast message for service compute."
+  },
+  {
+    "id": "OPENSTACK-INC-009",
+    "title": "Glance Image Signature Verification Failed",
+    "text": "SignatureVerificationError: Signature verification failed for image-089. Metadata signature does not match registry key.",
+    "type": "openstack",
+    "subtype": "security_signature_error",
+    "severity": "high",
+    "root_cause": "Expired public keys in Keystone credential manager or corrupted image upload metadata.",
+    "resolution": "Re-import updated public keys into Keystone credential registry, sign the image volume, and update metadata fields.",
+    "logs": "2026-06-25 12:34:10 INFO glance.api.middleware.image_validation [req-7q8r] Initiating signature check for image image-089\n2026-06-25 12:34:12 ERROR glance.api.middleware.image_validation [req-7q8r] Verification failed: Public key mismatch\n2026-06-25 12:34:14 WARN glance.api.v2.images [req-7q8r] Blocked request to serve image image-089 due to security rule."
+  },
+  {
+    "id": "OPENSTACK-INC-010",
+    "title": "Nova Console Auth Proxy Connection Failure",
+    "text": "nova-consoleauth connection refused. Cannot authenticate WebSocket token. VNC console access disabled.",
+    "type": "openstack",
+    "subtype": "vnc_proxy_failure",
+    "severity": "medium",
+    "root_cause": "Service crash of nova-consoleauth daemon on controller node.",
+    "resolution": "Restart nova-consoleauth service via systemctl daemon controls and monitor console validation queues.",
+    "logs": "2026-06-25 12:37:11 INFO nova.consoleauth.manager [req-9s0t] Checking VNC WebSocket token validations\n2026-06-25 12:37:14 ERROR nova.console.websocketproxy [req-9s0t] Connection refused while validating token with consoleauth service\n2026-06-25 12:37:16 WARN nova.console.websocketproxy [req-9s0t] Terminating client VNC session proxy connection."
+  }
+]

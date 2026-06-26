@@ -1,0 +1,112 @@
+[
+  {
+    "id": "HDFS-INC-001",
+    "title": "HDFS block verification failure (Event 29)",
+    "text": "Verification of block blk_5210986793132641744 failed. Checksum mismatch on DataNode: 10.250.19.102:50010. Block corruption detected.",
+    "type": "hdfs",
+    "subtype": "block_corruption",
+    "severity": "critical",
+    "root_cause": "Disk block degradation on target DataNode hardware causing verification failure of block checksum.",
+    "resolution": "NameNode automatically triggers block replication from a redundant healthy replica to replace the corrupted block, followed by decommissioning / scanning target disk sector on the faulty DataNode.",
+    "logs": "081111 101621 28169 INFO dfs.DataNode$DataXceiver: Receiving block blk_5210986793132641744 src: /10.250.19.102:54106 dest: /10.250.19.102:50010\n081111 101622 28169 INFO dfs.DataNode$BlockReceiver: Receiving block blk_5210986793132641744 src: /10.250.19.102:54106 dest: /10.250.19.102:50010\n081111 101623 28172 ERROR dfs.DataNode$BlockReceiver: Verification of block blk_5210986793132641744 failed\n081111 101624 28172 WARN dfs.DataNode$DataXceiver: Block blk_5210986793132641744 is corrupt. Reporting corruption to NameNode."
+  },
+  {
+    "id": "HDFS-INC-002",
+    "title": "DataNode Write Socket Timeout Exception (Event 22)",
+    "text": "WriteException: Connection reset by peer on DataNode 10.250.11.23. Exception during block stream write to pipeline replica.",
+    "type": "hdfs",
+    "subtype": "write_timeout",
+    "severity": "high",
+    "root_cause": "Network packet drop and TCP socket timeout on target replication pipeline member.",
+    "resolution": "Re-construct the write pipeline by removing the unresponsive DataNode from the pipeline list, reporting it to NameNode, and writing directly to the remaining healthy DataNodes.",
+    "logs": "081109 203518 143 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.11.23:54106 dest: /10.250.11.24:50010\n081109 203525 143 WARN dfs.DataNode$BlockReceiver: Exception in receiveBlock for block blk_-1608999687919862906 java.io.IOException: Connection reset by peer\n081109 203526 143 INFO dfs.DataNode$DataXceiver: Abandoning replication pipeline member /10.250.11.24:50010 due to write failure."
+  },
+  {
+    "id": "HDFS-INC-003",
+    "title": "PacketResponder Exception Storm (Event 5)",
+    "text": "PacketResponder Exception for block blk_3892019485732103. Terminating responder thread. DataNode cannot send ACK packet to client.",
+    "type": "hdfs",
+    "subtype": "packet_responder_failure",
+    "severity": "critical",
+    "root_cause": "Buffer pool allocation exhaustion or heap pressure on the target DataNode JVM runtime.",
+    "resolution": "Restart the target DataNode JVM process, adjust heap allocation configuration (-Xmx4g), and trigger temporary load shedding / routing.",
+    "logs": "081112 041209 1082 INFO dfs.DataNode$PacketResponder: PacketResponder 1 for block blk_3892019485732103 terminating\n081112 041210 1082 ERROR dfs.DataNode$PacketResponder: Exception PacketResponder 1 for block blk_3892019485732103 java.io.EOFException\n081112 041212 1083 WARN dfs.DataNode$DataXceiver: PacketResponder exception on client stream. Aborting connection handler."
+  },
+  {
+    "id": "HDFS-INC-004",
+    "title": "NameNode Block Report Latency Spike (Event 16)",
+    "text": "NameNode processing block report from DataNode 10.250.5.12 took 14200ms (threshold 1000ms). RPC queues overloaded.",
+    "type": "hdfs",
+    "subtype": "namenode_overload",
+    "severity": "critical",
+    "root_cause": "GC pause storm or database metadata lock saturation on NameNode due to high metadata update rate.",
+    "resolution": "Enable NameNode fair-call queue scheduler, trigger metadata checkpointing to save FSImage, and scale auxiliary standby NameNode to distribute active query load.",
+    "logs": "081110 112001 12 INFO dfs.FSNamesystem: Rollback log processing complete. Active NameNode running.\n081110 112015 15 WARN org.apache.hadoop.ipc.Server: IPC Server Responder: slow response processing blockReport from 10.250.5.12:50010 took 14.2s\n081110 112016 15 INFO dfs.FSNamesystem: BLOCK* NameSystem.processReport: Block report parsing slow down client queue count: 284"
+  },
+  {
+    "id": "HDFS-INC-005",
+    "title": "DataNode Decommissioning & Block Replication Storm",
+    "text": "DataNode 10.250.32.8 decommissioned. Under-replicated blocks count: 18450. Re-replication queue processing at maximum bandwidth.",
+    "type": "hdfs",
+    "subtype": "decommission_storm",
+    "severity": "high",
+    "root_cause": "Sudden removal of node with large active blocks count triggering massive network transmission spikes across healthy peers.",
+    "resolution": "Throttle the replication stream using 'dfs.namenode.replication.max-streams' configurations, monitor packet-loss metrics, and balance the cluster nodes.",
+    "logs": "081114 021530 45 INFO dfs.FSNamesystem: Decommissioning DataNode 10.250.32.8 started\n081114 021532 45 WARN dfs.FSNamesystem: Block blk_2391058295321045 has only 1 replica. Under-replicated blocks queue size: 18450\n081114 021535 48 INFO dfs.FSNamesystem: Triggering parallel copy tasks for block re-replication."
+  },
+  {
+    "id": "HDFS-INC-006",
+    "title": "DataNode Block Allocation Target Mismatch",
+    "text": "Failed to place replica for block blk_982103857321049. Not enough DataNodes available: 2 (required: 3). Replication policy violated.",
+    "type": "hdfs",
+    "subtype": "replication_violation",
+    "severity": "high",
+    "root_cause": "Network split / partition isolating rack-2 from the primary master node.",
+    "resolution": "Establish target route checks, check cluster switch status, and dynamically drop replication constraints temporarily if strict rack-safety is not required.",
+    "logs": "081115 142055 120 INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: /user/root/testfile blk_982103857321049\n081115 142056 120 WARN org.apache.hadoop.hdfs.server.namenode.BlockPlacementPolicy: Failed to place replica. Target nodes: 2, required: 3.\n081115 142058 120 ERROR dfs.FSNamesystem: Out of space or missing healthy DataNodes for block blk_982103857321049 allocation."
+  },
+  {
+    "id": "HDFS-INC-007",
+    "title": "DataNode Heartbeat Timeout & Death",
+    "text": "DataNode 10.250.14.88:50010 has been quiet for 630 seconds. Marking DataNode as DEAD. Activating replica replication tasks.",
+    "type": "hdfs",
+    "subtype": "node_death",
+    "severity": "critical",
+    "root_cause": "Kernel freeze or network interface controller (NIC) failure on the physical rack hardware hosting 10.250.14.88.",
+    "resolution": "NameNode scheduler removes dead node from active list, lists blocks on dead node as under-replicated, and requests healthy nodes to trigger replication copies.",
+    "logs": "081116 091012 34 INFO dfs.FSNamesystem: Number of transactions: 12095\n081116 091018 34 WARN dfs.FSNamesystem: Lost heartbeat from DataNode 10.250.14.88. Timeout 630s exceeded.\n081116 091020 35 INFO dfs.FSNamesystem: Removing DataNode 10.250.14.88 from active registry. Active DataNode nodes remaining: 15"
+  },
+  {
+    "id": "HDFS-INC-008",
+    "title": "DFS Namesystem Journal Log Sync Lag",
+    "text": "Slow journal log sync to Standby NameNode. Edit Log write took 8400ms. High system write I/O operations per second (IOPS).",
+    "type": "hdfs",
+    "subtype": "journal_lag",
+    "severity": "high",
+    "root_cause": "Local SSD write cache exhaustion or shared storage contention on the active NameNode master host.",
+    "resolution": "Optimize write buffer cache, clean up historical checkpoint logs, and migrate active metadata logging directory to dedicated local flash media storage.",
+    "logs": "081117 183301 99 INFO dfs.FSImage: Checkpointing started on Standby NameNode\n081117 183312 101 WARN dfs.FSNamesystem: Slow journal log sync! Edit Log write processing slow queue latency: 8.4s\n081117 183315 101 INFO dfs.FSImage: Saving FSImage checkpoints to partition disk took 12 seconds."
+  },
+  {
+    "id": "HDFS-INC-009",
+    "title": "DataNode Write Pipeline Recovery Timeout",
+    "text": "Pipeline recovery failed for block blk_849201857210349. Recovery attempts: 5/5. Primary DataNode replication handshakes failing.",
+    "type": "hdfs",
+    "subtype": "pipeline_recovery_failure",
+    "severity": "high",
+    "root_cause": "Clock drift or SSH / TCP port credential mismatch between the cluster nodes.",
+    "resolution": "Run NTP synchronization across the cluster to align node timestamps and verify that target internal connection ports are open in security tables.",
+    "logs": "081118 221004 88 INFO dfs.DataNode$BlockReceiver: Recovering pipeline for block blk_849201857210349\n081118 221010 88 WARN dfs.DataNode$BlockReceiver: Pipeline recovery attempt 5 failed. Node timestamp deviation detected.\n081118 221012 89 ERROR dfs.DataNode$DataXceiver: Aborting block replication handshakes. Pipeline broken."
+  },
+  {
+    "id": "HDFS-INC-010",
+    "title": "HDFS Client DFSClient Write Exception",
+    "text": "DFSClient: Exception in createBlockOutputStream: org.apache.hadoop.ipc.RemoteException: All replicas are decommissioned / dead.",
+    "type": "hdfs",
+    "subtype": "client_write_failure",
+    "severity": "critical",
+    "root_cause": "Total cluster depletion where write requests cannot allocate any healthy replication targets.",
+    "resolution": "Audit active cluster node states, verify that target DataNodes are registered, and scale capacity online.",
+    "logs": "081119 110544 12 INFO dfs.DFSClient: Creating new output stream for block blk_492018572103495\n081119 110545 12 WARN dfs.DFSClient: RemoteException: All replica nodes are quiet, decommissioned, or dead.\n081119 110547 13 ERROR dfs.DFSClient: Failed to allocate target write block stream. Terminating client connection."
+  }
+]

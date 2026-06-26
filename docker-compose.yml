@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: aira-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount data volume to persist ChromaDB files and trained Q-Tables
+      - ./data:/app/data
+    env_file:
+      - .env
+    environment:
+      - PORT=8000
+      - AIRA_ENABLE_MEMORY=true
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./SRE Dashboard
+      dockerfile: Dockerfile
+    container_name: aira-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws/aira
+    depends_on:
+      - backend
+    restart: unless-stopped

@@ -1,0 +1,77 @@
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Node.js
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Logs & Caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+.eslintcache
+
+# Environment / Secrets (Never commit secrets!)
+.env
+.env.local
+.env.*.local
+**/.env.local
+**/.env.*.local
+
+# OS Specific
+.DS_Store
+Thumbs.db
+
+# IDE / Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Scratch Scripts & Temp Outputs
+scratch_*.py
+temp/
+tmp/
+
+# =================================================================
+# Project-specific Ignored Assets (For a clean GitHub presentation)
+# =================================================================
+
+# Personal Study Material & Textbook Notes
+RL TextBook.md
+Agents Composition.md
+Dataset-link.md
+SEPM_Stitch_Prompts.txt
+langgraph_docs_reading_order.txt
+
+# Redundant Analysis, Reports, and Academic UML Diagrams
+uml diagrams/
+notebook/
+reports/
+
+# Binary Models (Large weights should be pulled dynamically/stored outside git)
+models/
+**/*.zip
+**/*.pkl
+
+# OS/Local test scripts
+test_api.ps1
