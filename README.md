@@ -107,21 +107,51 @@ $$R(s, a) = \begin{cases}
 ## 🚀 Setting Up the Sandbox
 
 ### 1. Initialize Python Environment & Install Dependencies
-Run the project bootstrap script to set up virtual environments and install standard packages:
+
+**On macOS / Linux:**
 ```bash
 ./setup.sh
 ```
 
+**On Windows (PowerShell / Command Prompt):**
+```powershell
+# Create & activate Python virtual environment
+python -m venv .venv
+.venv\Scripts\activate
+
+# Install backend dependencies
+pip install -r backend/requirements.txt
+
+# Install frontend dependencies
+cd "SRE Dashboard"
+npm install
+cd ..
+```
+
 ### 2. Launch the FastAPI Backend
-Starts the FastAPI orchestrator and the WebSocket telemetry server on port `8000`:
+
+**On macOS / Linux:**
 ```bash
 ./run_backend.sh
 ```
 
+**On Windows:**
+```powershell
+.venv\Scripts\activate
+python -m backend.run_aira
+```
+
 ### 3. Launch the Next.js Frontend
-Starts the SRE War Room dashboard on port `3000`:
+
+**On macOS / Linux:**
 ```bash
 ./run_frontend.sh
+```
+
+**On Windows:**
+```powershell
+cd "SRE Dashboard"
+npm run dev
 ```
 
 ---
